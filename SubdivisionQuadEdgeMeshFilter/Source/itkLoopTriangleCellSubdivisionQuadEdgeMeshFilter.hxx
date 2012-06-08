@@ -28,9 +28,9 @@ LoopTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::CellSubdivision( OutputCellType *cell, OutputMeshType *output)
 {
   if ( cell->GetType() != OutputCellType::POLYGON_CELL || cell->GetNumberOfPoints() != 3 )
-  {
-  return;
-  }
+    {
+    return;
+    }
 
   OutputPointIdentifier oldPointIdArray[3];
   OutputPointIdentifier newPointIdArray[3];
@@ -50,7 +50,7 @@ LoopTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 
   for ( unsigned int ii = 0; ii < 3; ++ii )
     {
-    int jj = ( ii + 1 ) % 3;
+    unsigned int jj = ( ii + 1 ) % 3;
 
     OutputQEType *edge = this->GetOutput()->FindEdge(oldPointIdArray[ii], oldPointIdArray[jj]);
 

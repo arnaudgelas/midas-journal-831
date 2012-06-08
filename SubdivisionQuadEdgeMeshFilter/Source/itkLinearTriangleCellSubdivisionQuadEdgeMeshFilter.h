@@ -61,10 +61,11 @@ public:
   typedef typename Superclass::EdgePointIdentifierContainerConstIterator EdgePointIdentifierContainerConstIterator;
 
   /** Run-time type information (and related methods).   */
-  itkTypeMacro(LinearTriangleCellSubdivisionQuadEdgeMeshFilter, CellSubdivisionQuadEdgeMeshFilter);
+  itkTypeMacro(LinearTriangleCellSubdivisionQuadEdgeMeshFilter,
+               CellSubdivisionQuadEdgeMeshFilter)
 
   /** New macro for creation of through a Smart Pointer   */
-  itkNewMacro(Self);
+  itkNewMacro(Self)
 
 protected:
   LinearTriangleCellSubdivisionQuadEdgeMeshFilter() {}

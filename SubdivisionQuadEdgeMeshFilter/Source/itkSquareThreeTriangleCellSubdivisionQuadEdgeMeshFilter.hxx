@@ -28,9 +28,9 @@ SquareThreeTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::CellSubdivision( OutputCellType *cell, OutputMeshType *output )
 {
   if ( cell->GetType() != OutputCellType::POLYGON_CELL || cell->GetNumberOfPoints() != 3 )
-  {
-  return;
-  }
+    {
+    return;
+    }
 
   OutputPointIdentifier oldPointIdArray[3];
   OutputPointIdentifier newPointId;
@@ -50,9 +50,11 @@ SquareThreeTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
     ++nn;
     }
 
+  typename OutputPointType::ValueType den = 1. / static_cast< typename OutputPointType::ValueType >( nn );
+
   for ( unsigned int kk = 0; kk < OutputPointType::PointDimension; ++kk )
     {
-    outPoint[kk] /= nn;
+    outPoint[kk] *= den;
     }
 
   newPointId = output->GetNumberOfPoints();
@@ -60,12 +62,14 @@ SquareThreeTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 
   for ( unsigned int ii = 0; ii < 3; ++ii )
     {
-    int jj = ( ii + 1 ) % 3;
+    unsigned int jj = ( ii + 1 ) % 3;
     output->AddFaceTriangle(oldPointIdArray[ii], oldPointIdArray[jj], newPointId);
 
     OutputQEType *edge = output->FindEdge(oldPointIdArray[ii], oldPointIdArray[jj]);
 
-    if ( edge && !this->m_EdgesPointIdentifier->IndexExists(edge) && !this->m_EdgesPointIdentifier->IndexExists( edge->GetSym() ) )
+    if ( edge &&
+         !this->m_EdgesPointIdentifier->IndexExists(edge) &&
+         !this->m_EdgesPointIdentifier->IndexExists( edge->GetSym() ) )
       {
       this->m_EdgesPointIdentifier->InsertElement(edge, newPointId);
       }
@@ -86,7 +90,9 @@ SquareThreeTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
   CopyMeshToMeshPoints( output, this->GetOutput() );
 
   OutputPointIdentifier pointIdArray[2][2];
-  for ( EdgePointIdentifierContainerIterator et = this->m_EdgesPointIdentifier->Begin(); et != this->m_EdgesPointIdentifier->End(); ++et )
+  for ( EdgePointIdentifierContainerIterator et = this->m_EdgesPointIdentifier->Begin();
+        et != this->m_EdgesPointIdentifier->End();
+        ++et )
     {
     pointIdArray[0][0] = et->Index()->GetOrigin();
     pointIdArray[0][1] = et->Index()->GetDestination();
@@ -122,7 +128,7 @@ void
 SquareThreeTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::AfterCellsSubdivision( OutputMeshType *output )
 {
-  SwapEdges(output);
+  this->SwapEdges(output);
 }
 }
 #endif
