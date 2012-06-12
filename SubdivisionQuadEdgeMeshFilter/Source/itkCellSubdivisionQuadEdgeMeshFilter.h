@@ -71,11 +71,18 @@ public:
   /** Run-time type information (and related methods).   */
   itkTypeMacro(CellSubdivisionQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter);
 
-  itkSetMacro(Resolution, unsigned int);
-  itkGetConstMacro(Resolution, unsigned int);
+  itkSetMacro(ResolutionLevels, unsigned int);
+  itkGetConstMacro(ResolutionLevels, unsigned int);
+
+  itkSetMacro(Uniform, bool);
+  itkGetConstMacro(Uniform, bool);
+  itkBooleanMacro(Uniform);
+
+  void AddSubdividedCellId(OutputCellIdentifier cellId){m_CellsToBeSubdivided.push_back(cellId);}
 
 protected:
   CellSubdivisionQuadEdgeMeshFilter();
+
   virtual ~CellSubdivisionQuadEdgeMeshFilter() {}
 
   virtual void BeforeCellsSubdivision(OutputMeshType *output);
@@ -97,9 +104,8 @@ private:
 protected:
   EdgePointIdentifierContainerPointer m_EdgesPointIdentifier;
   OutputCellIdentifierListType        m_CellsToBeSubdivided;
-  unsigned int                        m_Resolution;
+  unsigned int                        m_ResolutionLevels;
   bool                                m_Uniform;
-
 };
 } // end namespace itk
 

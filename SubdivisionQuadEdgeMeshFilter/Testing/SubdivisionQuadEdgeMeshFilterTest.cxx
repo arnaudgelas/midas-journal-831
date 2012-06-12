@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " inputMeshFile  outputMeshFile subdivisionType Resolution " << std::endl;
+    std::cerr << " inputMeshFile  outputMeshFile subdivisionType Resolution non-uniform" << std::endl;
     std::cerr << " 0 : ModifiedButterfly " << std::endl;
     std::cerr << " 1 : Linear " << std::endl;
     std::cerr << " 2 : Loop " << std::endl;
@@ -109,14 +109,25 @@ int main(int argc, char *argv[])
   if ( argc >= 5 )
     {
     unsigned int n = std::atoi(argv[4]);
-    subdivision->SetResolution(n);
+    subdivision->SetResolutionLevels(n);
     }
 
+  if ( argc >= 6 )
+    {
+    subdivision->UniformOff();
+    subdivision->AddSubdividedCellId(0);
+    subdivision->AddSubdividedCellId(1);
+    subdivision->AddSubdividedCellId(2);
+    subdivision->AddSubdividedCellId(3);
+    subdivision->AddSubdividedCellId(5);
+    subdivision->AddSubdividedCellId(6);
+    subdivision->AddSubdividedCellId(9);
+    }
   subdivision->SetInput( reader->GetOutput() );
   subdivision->Update();
 
   bool smoothing = true;
-  if ( argc >= 6 )
+  if ( argc >= 7 )
   {
   smoothing = false;
   }

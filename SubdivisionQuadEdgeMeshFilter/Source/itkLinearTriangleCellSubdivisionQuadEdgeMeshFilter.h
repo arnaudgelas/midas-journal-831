@@ -62,10 +62,10 @@ public:
 
   /** Run-time type information (and related methods).   */
   itkTypeMacro(LinearTriangleCellSubdivisionQuadEdgeMeshFilter,
-               CellSubdivisionQuadEdgeMeshFilter)
+               CellSubdivisionQuadEdgeMeshFilter);
 
   /** New macro for creation of through a Smart Pointer   */
-  itkNewMacro(Self)
+  itkNewMacro(Self);
 
 protected:
   LinearTriangleCellSubdivisionQuadEdgeMeshFilter() {}
