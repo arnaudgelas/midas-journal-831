@@ -74,10 +74,6 @@ public:
   itkSetMacro(ResolutionLevels, unsigned int);
   itkGetConstMacro(ResolutionLevels, unsigned int);
 
-  itkSetMacro(Uniform, bool);
-  itkGetConstMacro(Uniform, bool);
-  itkBooleanMacro(Uniform);
-
   void AddSubdividedCellId(OutputCellIdentifier cellId){m_CellsToBeSubdivided.push_back(cellId);}
 
 protected:
