@@ -29,7 +29,7 @@ ModifiedButterflyTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputM
 {
   if ( cell->GetType() != OutputCellType::POLYGON_CELL || cell->GetNumberOfPoints() != 3 )
   {
-  return;
+  itkExceptionMacro(<<" The input cell is not a triangle cell");
   }
 	
   OutputPointIdentifier oldPointIdArray[3];
@@ -39,8 +39,8 @@ ModifiedButterflyTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputM
   OutputPointType pointArray[8];
 
   OutputPointIdIterator it = cell->PointIdsBegin();
-  unsigned int          numberOfPoints = output->GetNumberOfPoints();
-  unsigned int          n = 0;
+  OutputPointIdentifier numberOfPoints = output->GetNumberOfPoints();
+  OutputPointIdentifier n = 0;
 
   while ( it != cell->PointIdsEnd() )
     {
@@ -50,13 +50,18 @@ ModifiedButterflyTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputM
 
   for ( unsigned int ii = 0; ii < 3; ++ii )
     {
-    int jj = ( ii + 1 ) % 3;
+    unsigned int jj = ( ii + 1 ) % 3;
 
     OutputQEType *edge = this->GetOutput()->FindEdge(oldPointIdArray[ii], oldPointIdArray[jj]);
 
     if ( this->m_EdgesPointIdentifier->IndexExists(edge) )
       {
       newPointIdArray[ii] = this->m_EdgesPointIdentifier->GetElement(edge);
+      }
+    else if ( this->m_EdgesPointIdentifier->IndexExists(edge->GetSym()) )
+      {
+      newPointIdArray[ii] = this->m_EdgesPointIdentifier->GetElement(edge->GetSym());
+      this->m_EdgesPointIdentifier->InsertElement(edge, newPointIdArray[ii]);
       }
     else
       {
@@ -119,7 +124,7 @@ ModifiedButterflyTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputM
         pointArray[7].Fill(NumericTraits< typename OutputPointType::ValueType >::Zero);
         }
 
-      for ( unsigned kk = 0; kk < 3; ++kk )
+      for ( unsigned int kk = 0; kk < 3; ++kk )
         {
         for ( unsigned int mm = 0; mm < 8; ++mm )
           {
@@ -129,7 +134,6 @@ ModifiedButterflyTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputM
 
       newPointIdArray[ii] = numberOfPoints++;
       this->m_EdgesPointIdentifier->InsertElement(edge, newPointIdArray[ii]);
-      this->m_EdgesPointIdentifier->InsertElement(edge->GetSym(), newPointIdArray[ii]);
       output->SetPoint(newPointIdArray[ii], outPoint);
       }
     }

@@ -28,7 +28,7 @@ CellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::CellSubdivisionQuadEdgeMeshFilter()
 {
   m_EdgesPointIdentifier = EdgePointIdentifierContainer::New();
-  m_Resolution = 1;
+  m_ResolutionLevels = 1;
   m_Uniform = true;
 }
 
@@ -37,46 +37,42 @@ void
 CellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::GenerateData()
 {
-  this->CopyInputMeshToOutputMesh();
+  m_Uniform = this->m_CellsToBeSubdivided.empty();
 
-  while ( m_Resolution != 0 )
+  this->CopyInputMeshToOutputMeshGeometry();
+
+  while ( m_ResolutionLevels != 0 )
     {
     OutputMeshPointer result = OutputMeshType::New();
 
-    this->BeforeCellsSubdivision(result);
+    BeforeCellsSubdivision(result);
 
     this->m_EdgesPointIdentifier->Initialize();
 
     OutputCellsContainerPointer cells = this->GetOutput()->GetCells();
 
-    if( this->m_Uniform )
+    if( m_Uniform )
       {
       for ( OutputCellsContainerIterator cellIt = cells->Begin(); cellIt != cells->End(); ++cellIt )
         {
-        this->CellSubdivision(cellIt->Value(),result);
+        CellSubdivision(cellIt->Value(),result);
         }
       }
     else
       {
       OutputCellIdentifierListConstIterator it  = this->m_CellsToBeSubdivided.begin();
       OutputCellIdentifierListConstIterator end = this->m_CellsToBeSubdivided.end();
-
       while( it != end )
         {
-        OutputCellType* cell = cells->GetCell( *it );
+        OutputCellType* cell = cells->GetElement( *it );
         this->CellSubdivision( cell, result );
         ++it;
         }
       }
 
-    if( !this->m_Uniform )
-      {
-      this->FixNeighborCells( result );
-      }
+    AfterCellsSubdivision(result);
 
-    this->AfterCellsSubdivision(result);
-
-    --m_Resolution;
+    --m_ResolutionLevels;
     }
 }
 
@@ -106,102 +102,117 @@ void
 CellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::FixNeighborCells(OutputMeshType *output)
 {
+
+  OutputCellIdentifierListType newCellsToBeSubdivided;
+
+  for ( OutputCellsContainerIterator cellIt = output->GetCells()->Begin();
+        cellIt != output->GetCells()->End();
+        ++cellIt)
+    {
+    newCellsToBeSubdivided.push_back(cellIt->Index());
+    }
+
   OutputCellsContainerPointer cells = this->GetOutput()->GetCells();
 
   for ( OutputCellsContainerIterator cellIt = cells->Begin();
         cellIt != cells->End();
         ++cellIt )
     {
-    if( std::find( this->m_CellsToBeSubdivided.begin(),
-                   this->m_CellsToBeSubdivided.end(),
-                   cellIt->Index() ) == this->m_CellsToBeSubdivided.end() )
+    OutputCellType* cell = cellIt->Value();
+
+    if ( cell->GetType() != OutputCellType::POLYGON_CELL || cell->GetNumberOfPoints() != 3 )
       {
-      OutputCellType* cell = cellIt->Value();
+      continue;
+      }
 
-      if ( cell->GetType() != OutputCellType::POLYGON_CELL || cell->GetNumberOfPoints() != 3 )
+    OutputPointIdentifier oldPointIdArray[3];
+    OutputPointIdentifier newPointIdArray[3];
+
+    OutputPointIdIterator it = cell->PointIdsBegin();
+    unsigned int          n = 0;
+
+    while ( it != cell->PointIdsEnd() )
+      {
+      oldPointIdArray[n] = *it;
+      ++it;
+      ++n;
+      }
+
+    unsigned int splitEdges[3];
+    n = 0;
+    OutputQEType *edge;
+    bool copyCellFlag = true;
+    for ( unsigned int ii = 0; ii < 3; ++ii )
+      {
+      unsigned int jj = ( ii + 1 ) % 3;
+
+      edge = this->GetOutput()->FindEdge(oldPointIdArray[ii], oldPointIdArray[jj]);
+
+      if ( this->m_EdgesPointIdentifier->IndexExists(edge) )
         {
-        continue;
+        copyCellFlag = false;
+        break;
         }
-
-      OutputPointIdentifier oldPointIdArray[3];
-      OutputPointIdentifier newPointIdArray[3];
-      OutputPointType       pointArray[3];
-
-      OutputPointIdIterator it = cell->PointIdsBegin();
-      unsigned int          n = 0;
-
-      while ( it != cell->PointIdsEnd() )
+      else if(this->m_EdgesPointIdentifier->IndexExists(edge->GetSym()) )
         {
-        oldPointIdArray[n] = *it;
-        this->GetOutput()->GetPoint(*it, &pointArray[n]);
-        ++it;
+        newPointIdArray[ii] = this->m_EdgesPointIdentifier->GetElement(edge->GetSym());
+        splitEdges[n] = ii ;
         ++n;
         }
+      }
 
-      std::list< bool > splitEdge;
+    if( copyCellFlag && n == 0 )
+      {
+      // this face has no subdivided face as neighbor, copy it
+      output->AddFaceTriangle(oldPointIdArray[0], oldPointIdArray[1], oldPointIdArray[2]);
+      }
+    else if( n == 1 )
+      {
+      unsigned int ii = splitEdges[0];
+      unsigned int jj = ( ii + 1 ) % 3;
+      unsigned int kk = ( ii + 2 ) % 3;
 
-      for ( unsigned int ii = 0; ii < 3; ++ii )
+      output->AddFaceTriangle( newPointIdArray[ii], oldPointIdArray[jj], oldPointIdArray[kk] );
+      output->AddFaceTriangle( newPointIdArray[ii], oldPointIdArray[kk], oldPointIdArray[ii] );
+      }
+    else if( n == 2 )
+      {
+      unsigned int ii = splitEdges[0];
+      unsigned int jj = splitEdges[1];
+
+      if( ii == 0 && jj == 1 )
         {
-        unsigned int jj = ( ii + 1 ) % 3;
-
-        OutputQEType *edge = this->GetOutput()->FindEdge(oldPointIdArray[ii], oldPointIdArray[jj]);
-
-        if ( this->m_EdgesPointIdentifier->IndexExists(edge) )
-          {
-          newPointIdArray[ii] = this->m_EdgesPointIdentifier->GetElement(edge);
-          splitEdge.push_back( ii );
-          }
+        // ii = 0, jj = 1
+        output->AddFaceTriangle( oldPointIdArray[2], oldPointIdArray[0], newPointIdArray[0] );
+        output->AddFaceTriangle( oldPointIdArray[2], newPointIdArray[0], newPointIdArray[1] );
+        output->AddFaceTriangle( newPointIdArray[0], oldPointIdArray[1], newPointIdArray[1] );
         }
-
-      if( splitEdge.size() != 0 )
+      else if( ii == 0 && jj == 2 )
         {
-        // this face was not supposed to be subdivided but all neighbors are
-        if( splitEdge.size() == 3 )
-          {
-          output->AddFaceTriangle(oldPointIdArray[0], newPointIdArray[0], newPointIdArray[2]);
-          output->AddFaceTriangle(newPointIdArray[0], oldPointIdArray[1], newPointIdArray[1]);
-          output->AddFaceTriangle(newPointIdArray[1], oldPointIdArray[2], newPointIdArray[2]);
-          output->AddFaceTriangle(newPointIdArray[0], newPointIdArray[1], newPointIdArray[2]);
-          }
-        else if( splitEdge.size() == 1 )
-          {
-          unsigned int ii = splitEdge.front();
-          unsigned int jj = ( ii + 1 ) % 3;
-          unsigned int kk = ( ii + 2 ) % 3;
-
-          output->AddFaceTriangle( newPointIdArray[ii], oldPointIdArray[jj], oldPointIdArray[kk] );
-          output->AddFaceTriangle( newPointIdArray[ii], oldPointIdArray[kk], oldPointIdArray[ii] );
-          }
-        else if( splitEdge.size() == 2 )
-          {
-          unsigned int ii = splitEdge.front();
-          unsigned int jj = splitEdge.back();
-
-          if( ii == 0 && jj == 1 )
-            {
-            // ii = 0, jj = 1
-            output->AddFaceTriangle( oldPointIdArray[2], oldPointIdArray[0], newPointIdArray[0] );
-            output->AddFaceTriangle( oldPointIdArray[2], newPointIdArray[0], newPointIdArray[1] );
-            output->AddFaceTriangle( newPointIdArray[0], oldPointIdArray[1], newPointIdArray[1] );
-            }
-          else if( ii == 0 && jj == 2 )
-            {
-            // ii = 0, jj = 2
-            output->AddFaceTriangle( oldPointIdArray[1], oldPointIdArray[2], newPointIdArray[0] );
-            output->AddFaceTriangle( oldPointIdArray[2], newPointIdArray[0], newPointIdArray[2] );
-            output->AddFaceTriangle( newPointIdArray[2], oldPointIdArray[0], newPointIdArray[1] );
-            }
-          else if( ii == 1 && jj == 2 )
-            {
-            // ii = 1, jj = 2
-            output->AddFaceTriangle( oldPointIdArray[0], oldPointIdArray[1], newPointIdArray[1] );
-            output->AddFaceTriangle( oldPointIdArray[0], newPointIdArray[1], newPointIdArray[2] );
-            output->AddFaceTriangle( newPointIdArray[1], oldPointIdArray[2], newPointIdArray[2] );
-            }
-          }
+        // ii = 0, jj = 2
+        output->AddFaceTriangle( oldPointIdArray[1], oldPointIdArray[2], newPointIdArray[0] );
+        output->AddFaceTriangle( oldPointIdArray[2], newPointIdArray[2], newPointIdArray[0] );
+        output->AddFaceTriangle( newPointIdArray[2], oldPointIdArray[0], newPointIdArray[0] );
+        }
+      else if( ii == 1 && jj == 2 )
+        {
+        // ii = 1, jj = 2
+        output->AddFaceTriangle( oldPointIdArray[0], oldPointIdArray[1], newPointIdArray[1] );
+        output->AddFaceTriangle( oldPointIdArray[0], newPointIdArray[1], newPointIdArray[2] );
+        output->AddFaceTriangle( newPointIdArray[1], oldPointIdArray[2], newPointIdArray[2] );
         }
       }
+    else if( n == 3 )
+      {
+      // this face was not supposed to be subdivided but all neighbors are
+      output->AddFaceTriangle(oldPointIdArray[0], newPointIdArray[0], newPointIdArray[2]);
+      output->AddFaceTriangle(newPointIdArray[0], oldPointIdArray[1], newPointIdArray[1]);
+      output->AddFaceTriangle(newPointIdArray[1], oldPointIdArray[2], newPointIdArray[2]);
+      output->AddFaceTriangle(newPointIdArray[0], newPointIdArray[1], newPointIdArray[2]);
+      }
     }
+
+  this->m_CellsToBeSubdivided.swap(newCellsToBeSubdivided);
 }
 
 template< typename TInputMesh, typename TOutputMesh >
@@ -209,6 +220,11 @@ void
 CellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::AfterCellsSubdivision(OutputMeshType *output)
 {
+  if( !this->m_Uniform )
+    {
+    this->FixNeighborCells( output );
+    }
+
   this->GetOutput()->Graft(output);
 }
 
@@ -218,7 +234,7 @@ CellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::PrintSelf( std::ostream & os, Indent indent ) const
 {
   Superclass::PrintSelf(os, indent);
-  std::cout << indent << "Subdivision Resolution: " << m_Resolution << std::endl;
+  std::cout << indent << "Subdivision Resolution Levels: " << m_ResolutionLevels << std::endl;
 }
 }
 #endif

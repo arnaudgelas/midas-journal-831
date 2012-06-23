@@ -29,7 +29,7 @@ LinearTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 {
   if ( cell->GetType() != OutputCellType::POLYGON_CELL || cell->GetNumberOfPoints() != 3 )
     {
-    return;
+    itkExceptionMacro(<<" The input cell is not a triangle cell");
     }
 
   OutputPointIdentifier oldPointIdArray[3];
@@ -37,8 +37,8 @@ LinearTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
   OutputPointType       pointArray[3];
 
   OutputPointIdIterator it = cell->PointIdsBegin();
-  unsigned int          n = 0;
-  unsigned int          numberOfPoints = output->GetNumberOfPoints();
+  OutputPointIdentifier n = 0;
+  OutputPointIdentifier numberOfPoints = output->GetNumberOfPoints();
 
   while ( it != cell->PointIdsEnd() )
     {
@@ -58,6 +58,11 @@ LinearTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
       {
       newPointIdArray[ii] = this->m_EdgesPointIdentifier->GetElement(edge);
       }
+    else if ( this->m_EdgesPointIdentifier->IndexExists(edge->GetSym()) )
+      {
+      newPointIdArray[ii] = this->m_EdgesPointIdentifier->GetElement(edge->GetSym());
+      this->m_EdgesPointIdentifier->InsertElement(edge, newPointIdArray[ii]);
+      }
     else
       {
       OutputPointType outPoint;
@@ -66,7 +71,6 @@ LinearTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
       newPointIdArray[ii] = numberOfPoints++;
 
       this->m_EdgesPointIdentifier->InsertElement(edge, newPointIdArray[ii]);
-      this->m_EdgesPointIdentifier->InsertElement(edge->GetSym(), newPointIdArray[ii]);
 
       output->SetPoint(newPointIdArray[ii], outPoint);
       }
