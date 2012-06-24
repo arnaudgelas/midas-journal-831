@@ -74,6 +74,13 @@ public:
   itkSetMacro(ResolutionLevels, unsigned int);
   itkGetConstMacro(ResolutionLevels, unsigned int);
 
+  itkGetConstReferenceMacro(CellsToBeSubdivided, OutputCellIdentifierListType);
+  void SetCellsToBeSubdivided(const OutputCellIdentifierListType & cellIdList)
+    {
+    m_CellsToBeSubdivided = cellIdList;
+    this->Modified();
+    }
+
   void AddSubdividedCellId(OutputCellIdentifier cellId){m_CellsToBeSubdivided.push_back(cellId);}
 
 protected:

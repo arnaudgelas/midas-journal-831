@@ -84,12 +84,12 @@ add_test(AdaptiveLinearTriangleCellSubdivisionQuadEdgeMeshFilterTest_1
   1
   )
 
-add_test(AdaptiveLinearTriangleCellSubdivisionQuadEdgeMeshFilterTest_2 
+add_test(AdaptiveLinearTriangleCellSubdivisionQuadEdgeMeshFilterTest_2
   ${PROJECT_TEST_PATH}/SubdivisionQuadEdgeMeshFilterTest
   ${TEST_DATA_ROOT}/ico.vtk
   ${TEST_OUTPUT}/ico_alinear_2.vtk
   1
-  2 
+  2
   1
   )
 
@@ -143,11 +143,11 @@ add_test(AdaptiveSquareThreeTriangleCellSubdivisionQuadEdgeMeshFilterTest_2
   ${TEST_DATA_ROOT}/ico.vtk
   ${TEST_OUTPUT}/ico_asquare3_2.vtk
   3
-  2 
+  2
   1
   )
 
-add_test(LinearTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_1 
+add_test(LinearTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_1
   ${PROJECT_TEST_PATH}/SubdivisionQuadEdgeMeshFilterTest
   ${TEST_DATA_ROOT}/plane.vtk
   ${TEST_OUTPUT}/plane_linear.vtk
@@ -211,7 +211,7 @@ add_test(SquareThreeTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_2
   2
   )
 
-add_test(AdaptiveLinearTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_1 
+add_test(AdaptiveLinearTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_1
   ${PROJECT_TEST_PATH}/SubdivisionQuadEdgeMeshFilterTest
   ${TEST_DATA_ROOT}/plane.vtk
   ${TEST_OUTPUT}/plane_alinear.vtk
@@ -220,12 +220,12 @@ add_test(AdaptiveLinearTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_1
   1
   )
 
-add_test(AdaptiveLinearTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_2 
+add_test(AdaptiveLinearTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_2
   ${PROJECT_TEST_PATH}/SubdivisionQuadEdgeMeshFilterTest
   ${TEST_DATA_ROOT}/plane.vtk
   ${TEST_OUTPUT}/plane_alinear_2.vtk
   1
-  2 
+  2
   1
   )
 
@@ -253,7 +253,7 @@ add_test(AdaptiveLoopTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_1
   ${TEST_OUTPUT}/plane_aloop.vtk
   2
   1
-  1
+  0
   )
 
 add_test(AdaptiveLoopTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_2
@@ -262,7 +262,7 @@ add_test(AdaptiveLoopTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_2
   ${TEST_OUTPUT}/plane_aloop_2.vtk
   2
   2
-  1
+  0
   )
 
 add_test(AdaptiveSquareThreeTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_1
@@ -271,7 +271,7 @@ add_test(AdaptiveSquareThreeTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_1
   ${TEST_OUTPUT}/plane_asquare3.vtk
   3
   1
-  1
+  0
   )
 
 add_test(AdaptiveSquareThreeTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_2
@@ -279,6 +279,6 @@ add_test(AdaptiveSquareThreeTriangleCellSubdivisionQuadEdgeMeshFilterPlaneTest_2
   ${TEST_DATA_ROOT}/plane.vtk
   ${TEST_OUTPUT}/plane_asquare3_2.vtk
   3
-  2 
-  1
+  2
+  0
   )

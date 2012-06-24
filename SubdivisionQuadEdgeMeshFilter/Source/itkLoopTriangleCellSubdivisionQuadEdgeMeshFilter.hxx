@@ -170,8 +170,8 @@ LoopTriangleCellSubdivisionQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
       }
     else
       {
-      OutputCoordType beta =
-        ( 0.625 - ( 0.375 + 0.25 * vcl_cos(2.0 * vnl_math::pi / nn) ) * ( 0.375 + 0.25 * vcl_cos(2.0 * vnl_math::pi / nn) ) ) / nn;
+      OutputCoordType var  = 0.375 + 0.25 * vcl_cos(2.0 * vnl_math::pi / nn);
+      OutputCoordType beta = ( 0.625 - var * var ) / nn;
       for ( unsigned int kk = 0; kk < 3; ++kk )
         {
         opt[kk] = ( 1.0 - nn * beta ) * ipt[kk] + beta * opt[kk];
